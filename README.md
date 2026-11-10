@@ -17,7 +17,7 @@ config-file = kosm
 light mode), `palette[0]`..`palette[7]` from the wheel, the selection from the `emphasis.strong`
 and `state.selected` variations. `palette[8]`..`palette[15]` derive from those through `bright`,
 and `background_opacity` from the background's alpha when it is below 1, unless you set
-them.
+them. The background takes the theme's `background_alpha`.
 
 A minimal config can skip `from`: `kosm_ghostty.App{}` writes an empty `kosm`,
 so assign only what you want (`.{ .font_size = 13 }`) and ghostty keeps its defaults for the

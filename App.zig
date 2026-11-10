@@ -472,7 +472,7 @@ pub fn from(theme: kosm.Theme) App {
     const palette = theme.palette;
     const variations = theme.variations;
     const foreground = if (theme.mode == .dark) palette.white else palette.black;
-    const background = if (theme.mode == .dark) palette.black else palette.white;
+    const background = theme.asBackground(if (theme.mode == .dark) palette.black else palette.white);
     var app: App = .{ .bright = variations.lightness.bright };
 
     app.foreground = foreground;
@@ -743,4 +743,16 @@ test "an extra repeating a set option fails naming both" {
     app.extra = &.{.{ .path = "font-size", .value = .{ .integer = 12 } }};
     try testing.expectError(error.AppFailed, app.apply(&fixture.output));
     try testing.expectEqualStrings("extra 'font-size' and setting 'font-size' write the same key, or one inside the other; keep one", fixture.diagnostics.message());
+}
+
+test "the theme's background alpha becomes background_opacity, 1 writes none, and a set opacity wins" {
+    const palette: kosm.Palette = .{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc") };
+    var theme = kosm.Theme.from(palette, .light);
+    try testing.expectEqual(null, from(theme).withDerived().background_opacity);
+
+    theme.background_alpha = 0.5;
+    var app = from(theme);
+    try testing.expectEqual(0.5, app.withDerived().background_opacity.?);
+    app.background_opacity = 0.9;
+    try testing.expectEqual(0.9, app.withDerived().background_opacity.?);
 }
