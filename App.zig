@@ -465,14 +465,13 @@ auto_update: ?enum { off, check, download } = null,
 /// The release channel to use for auto-updates. null: ghostty's default.
 auto_update_channel: ?enum { stable, tip } = null,
 
-/// Colors from the theme: foreground and background from white and black (swapped in
-/// light mode), the 8 ANSI colors from the wheel, selection from the `emphasis.strong` and
+/// Colors from the theme: foreground and background from their roles, the 8 ANSI colors from the wheel, selection from the `emphasis.strong` and
 /// `state.selected` variations. Every other option is left to ghostty.
 pub fn from(theme: kosm.Theme) App {
     const palette = theme.palette;
     const variations = theme.variations;
-    const foreground = if (theme.mode == .dark) palette.white else palette.black;
-    const background = theme.asBackground(if (theme.mode == .dark) palette.black else palette.white);
+    const foreground = theme.roles.foreground;
+    const background = theme.asBackground(theme.roles.background);
     var app: App = .{ .bright = variations.lightness.bright };
 
     app.foreground = foreground;
@@ -578,7 +577,7 @@ const Fixture = struct {
 
 /// Kyanos as `kosm init` ships it, with Ricer's highlight (HSV value +10) as `bright`.
 fn kyanosTheme() kosm.Theme {
-    var theme = kosm.Theme.from(.{
+    var theme = kosm.Theme.from(.{ .palette = .{
         .black = kosm.hex("041c2680"),
         .white = kosm.hex("a3c5cc"),
         .red = kosm.hex("80333c"),
@@ -587,7 +586,7 @@ fn kyanosTheme() kosm.Theme {
         .blue = kosm.hex("267180"),
         .magenta = kosm.hex("436496"),
         .cyan = kosm.hex("268078"),
-    }, .dark);
+    }, .mode = .dark });
     theme.variations.lightness.bright = .{ .hsv = .{ .value = 0.10 } };
     return theme;
 }
@@ -668,7 +667,7 @@ test "light mode swaps background and foreground, and set derived options win" {
     var fixture: Fixture = undefined;
     try fixture.init();
     defer fixture.deinit();
-    var app = from(kosm.Theme.from(.{ .black = kosm.hex("102840"), .white = kosm.hex("eceff4") }, .light));
+    var app = from(kosm.Theme.from(.{ .palette = .{ .black = kosm.hex("102840"), .white = kosm.hex("eceff4") }, .mode = .light }));
     app.palette[9] = kosm.hex("ff0000");
     app.background_opacity = 0.9;
     app.keybind = &.{.{ .trigger = "ctrl+enter", .action = .unbind }};
@@ -747,7 +746,7 @@ test "an extra repeating a set option fails naming both" {
 
 test "the theme's background alpha becomes background_opacity, 1 writes none, and a set opacity wins" {
     const palette: kosm.Palette = .{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc") };
-    var theme = kosm.Theme.from(palette, .light);
+    var theme = kosm.Theme.from(.{ .palette = palette, .mode = .light });
     try testing.expectEqual(null, from(theme).withDerived().background_opacity);
 
     theme.background_alpha = 0.5;

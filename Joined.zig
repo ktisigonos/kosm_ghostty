@@ -1,6 +1,6 @@
 //! Builds a `kosm.Value.joined` for a value ghostty spells as one piece of text: literal text
 //! goes to `writer`, while floats, booleans and colors become parts the adapter writes in the
-//! file's format, so a clipped color warns.
+//! file's format.
 
 const Joined = @This();
 
