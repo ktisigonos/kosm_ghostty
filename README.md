@@ -14,7 +14,9 @@ config-file = kosm
 ```
 
 `from(theme)` sets the colors: foreground and background from the theme's roles, `palette[0]`..`palette[7]` from the wheel, the selection from the `emphasis.strong`
-and `state.selected` variations. `palette[8]`..`palette[15]` derive from those through `bright`,
+and `state.selected` variations, search matches the secondary role and the selected match the
+accent (each with readable text from `contrast.on`), the split divider the `line.border`
+variation, the unfocused split fill and the titlebar the background and foreground. `palette[8]`..`palette[15]` derive from those through `bright`,
 and `background_opacity` from the background's alpha when it is below 1, unless you set
 them. The background takes the theme's `background_alpha`.
 

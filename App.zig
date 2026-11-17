@@ -478,6 +478,14 @@ pub fn from(theme: kosm.Theme) App {
     app.background = background;
     app.selection_foreground = .{ .color = variations.emphasis.strong.apply(foreground) };
     app.selection_background = .{ .color = variations.state.selected.apply(background) };
+    app.search_background = theme.roles.secondary;
+    app.search_foreground = variations.contrast.on.apply(theme.roles.secondary);
+    app.search_selected_background = theme.roles.accent;
+    app.search_selected_foreground = variations.contrast.on.apply(theme.roles.accent);
+    app.split_divider_color = variations.line.border.apply(theme.roles.background);
+    app.unfocused_split_fill = theme.roles.background;
+    app.window_titlebar_background = background;
+    app.window_titlebar_foreground = foreground;
     for ([_]kosm.Color{ palette.black, palette.red, palette.green, palette.yellow, palette.blue, palette.magenta, palette.cyan, palette.white }, 0..) |color, index| {
         app.palette[index] = color;
     }
@@ -638,12 +646,12 @@ test "Kyanos writes what Ricer's ghostty file holds, plus the selection colors i
         const in_ricer = for (ricer) |expected| {
             if (std.mem.eql(u8, expected, line)) break true;
         } else false;
-        if (!in_ricer and !std.mem.startsWith(u8, line, "selection-") and !isBrightPaletteLine(line)) {
+        if (!in_ricer and !isDerivedFromRoles(line) and !isBrightPaletteLine(line)) {
             std.debug.print("not in Ricer: {s}\nwritten:\n{s}\n", .{ line, fixture.written() });
             return error.TestUnexpectedResult;
         }
     }
-    try testing.expectEqual(ricer.len + ricer_bright.len + 2, line_count);
+    try testing.expectEqual(ricer.len + ricer_bright.len + 10, line_count);
     for (ricer_bright, 8..) |expected, index| {
         const written = app.withDerived().palette[index].?.toRgb();
         const ricer_color = (try kosm.Color.parseHex(expected)).toRgb();
@@ -661,6 +669,22 @@ fn isBrightPaletteLine(line: []const u8) bool {
         if (std.mem.startsWith(u8, line, prefix)) return true;
     }
     return false;
+}
+
+/// Whether `line` sets a color Ricer never wrote, which `from` takes from the theme's roles.
+fn isDerivedFromRoles(line: []const u8) bool {
+    for ([_][]const u8{ "selection-", "search-", "split-divider-color", "unfocused-split-fill", "window-titlebar-" }) |prefix| {
+        if (std.mem.startsWith(u8, line, prefix)) return true;
+    }
+    return false;
+}
+
+test "search matches are the secondary role and the selected match the accent, each with readable text" {
+    const theme = kosm.Theme.from(.{ .palette = .{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc") }, .mode = .dark });
+    const app = from(theme);
+    try testing.expectEqual(theme.roles.secondary, app.search_background.?);
+    try testing.expectEqual(theme.roles.accent, app.search_selected_background.?);
+    try testing.expectEqual(theme.variations.contrast.on.apply(theme.roles.accent), app.search_selected_foreground.?);
 }
 
 test "light mode swaps background and foreground, and set derived options win" {
