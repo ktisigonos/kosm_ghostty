@@ -492,11 +492,11 @@ pub fn from(theme: kosm.Theme) App {
     return app;
 }
 
-/// Makes every running ghostty re-read its config by sending it SIGUSR2. With no ghostty
-/// running, kosm only warns.
+/// Makes every running ghostty re-read its config by sending it SIGUSR2; with no ghostty
+/// running there is nothing to do.
 pub fn reload(self: App, reloader: *kosm.Reloader) !void {
     _ = self;
-    try reloader.run(&.{ "pkill", "-USR2", "-x", "ghostty" });
+    try reloader.runIfRunning("ghostty", &.{ "pkill", "-USR2", "-x", "ghostty" });
 }
 
 /// Writes every set option to `file`.

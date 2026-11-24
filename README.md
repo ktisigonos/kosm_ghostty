@@ -35,8 +35,8 @@ mixes `true`/`false` with words, the field is a union with a `boolean` member
 Left out: `config-default-files`, which ghostty only reads from the command line, and `link`,
 which ghostty can't set yet.
 
-After every apply the app reloads every running ghostty by sending it SIGUSR2
-(`pkill -USR2 -x ghostty`). If no ghostty is running, kosm prints a warning and carries on.
+After an apply that changed its file the app reloads every running ghostty by sending it SIGUSR2
+(`pkill -USR2 -x ghostty`). If no ghostty is running, there is nothing to reload.
 
 ## Keybinds
 
