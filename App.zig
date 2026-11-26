@@ -499,6 +499,26 @@ pub fn reload(self: App, reloader: *kosm.Reloader) !void {
     try reloader.runIfRunning("ghostty", &.{ "pkill", "-USR2", "-x", "ghostty" });
 }
 
+/// What `kosm doctor` checks: the `ghostty` command, and ghostty's config reading `file`.
+pub fn checkup(self: App) kosm.Checkup {
+    const name = if (std.mem.startsWith(u8, self.file, config_folder)) self.file[config_folder.len..] else self.file;
+    return .{
+        .program = .{ .command = "ghostty" },
+        .includes = kosm.keep(kosm.Checkup.Include, &.{.{
+            .file = config_folder ++ "config",
+            .line = kosm.keepPrint("config-file = {s}", .{name}),
+            .matches = kosm.keep([]const u8, &.{
+                kosm.keepPrint("config-file = ?{s}", .{name}),
+                kosm.keepPrint("config-file={s}", .{name}),
+                kosm.keepPrint("config-file = {s}", .{self.file}),
+            }),
+        }}),
+    };
+}
+
+/// The folder ghostty reads its config from, which a relative `config-file` starts from.
+const config_folder = "~/.config/ghostty/";
+
 /// Writes every set option to `file`.
 pub fn apply(self: App, output: *kosm.Output) !void {
     const options = try kosm.Setting.leaves(output.allocator, try settings.tree(output.allocator, self.withDerived()));
@@ -778,4 +798,14 @@ test "the theme's background alpha becomes background_opacity, 1 writes none, an
     try testing.expectEqual(0.5, app.withDerived().background_opacity.?);
     app.background_opacity = 0.9;
     try testing.expectEqual(0.9, app.withDerived().background_opacity.?);
+}
+
+test "checkup names the config's config-file line, relative inside ghostty's folder" {
+    const default = (App{}).checkup();
+    try testing.expectEqualStrings("ghostty", default.program.?.command.?);
+    try testing.expectEqualStrings("~/.config/ghostty/config", default.includes[0].file);
+    try testing.expect(default.includes[0].isIn("font-size = 12\nconfig-file = kosm\n"));
+    try testing.expect(default.includes[0].isIn("config-file = ?kosm\n"));
+    try testing.expect(!default.includes[0].isIn("# config-file = kosm\n"));
+    try testing.expectEqualStrings("config-file = ~/kosm.ghostty", (App{ .file = "~/kosm.ghostty" }).checkup().includes[0].line);
 }

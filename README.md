@@ -13,6 +13,9 @@ default. Make ghostty read it once, at the end of your own config so its values 
 config-file = kosm
 ```
 
+`kosm doctor` checks that the `ghostty` command is installed and that `~/.config/ghostty/config`
+holds that line.
+
 `from(theme)` sets the colors: foreground and background from the theme's roles, `palette[0]`..`palette[7]` from the wheel, the selection from the `emphasis.strong`
 and `state.selected` variations, search matches the secondary role and the selected match the
 accent (each with readable text from `contrast.on`), the split divider the `line.border`
